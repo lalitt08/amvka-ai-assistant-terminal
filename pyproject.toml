@@ -44,11 +44,11 @@ dependencies = [
 keywords = ["cli", "ai", "natural-language", "shell", "command", "automation", "assistant"]
 
 [project.urls]
-Homepage = "https://github.com/lalitsangore/amvka"
-Repository = "https://github.com/lalitsangore/amvka"
-Issues = "https://github.com/lalitsangore/amvka/issues"
-Documentation = "https://github.com/lalitsangore/amvka/blob/main/README.md"
-Changelog = "https://github.com/lalitsangore/amvka/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/lalitt08/amvka-ai-assistant-terminal"
+Repository = "https://github.com/lalitt08/amvka-ai-assistant-terminal"
+Issues = "https://github.com/lalitt08/amvka-ai-assistant-terminal/issues"
+Documentation = "https://github.com/lalitt08/amvka-ai-assistant-terminal/blob/main/README.md"
+Changelog = "https://github.com/lalitt08/amvka-ai-assistant-terminal/blob/main/CHANGELOG.md"
 
 [project.scripts]
 amvka = "amvka.cli:main"

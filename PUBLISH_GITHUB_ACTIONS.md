@@ -19,7 +19,7 @@ git add .
 git commit -m "Initial release v1.0.1a1"
 
 # Add your GitHub remote (replace with your actual repo)
-git remote add origin https://github.com/lalitsangore/amvka.git
+git remote add origin https://github.com/lalitt08/amvka-ai-assistant-terminal.git
 git branch -M main
 git push -u origin main
 ```
@@ -30,8 +30,8 @@ git push -u origin main
 2. Click "Add a new pending publisher"
 3. Fill in:
    - **PyPI project name**: `amvka`
-   - **Owner**: `lalitsangore` (your GitHub username)
-   - **Repository name**: `amvka`
+   - **Owner**: `lalitt08` (your GitHub username)
+   - **Repository name**: `amvka-ai-assistant-terminal`
    - **Workflow name**: `publish.yml`
    - **Environment name**: Leave empty (optional)
 
