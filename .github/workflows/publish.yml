@@ -41,8 +41,6 @@ jobs:
       - name: Publish to PyPI (release tags)
         if: ${{ !contains(github.ref_name, 'a') && !contains(github.ref_name, 'b') && !contains(github.ref_name, 'rc') }}
         uses: pypa/gh-action-pypi-publish@release/v1
-        run: |
-          python -m twine upload dist/* --non-interactive
 
       - name: Summary
         run: |
