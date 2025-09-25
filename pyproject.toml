@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "amvka"
 version = "1.0.0"
-description = "🎯 AI Command Assistant - Convert natural language to shell commands using AI"
+description = "🎯 AI Command Assistant - Convert natural language to shell commands using AI, Now Ai is into Your terminal"
 readme = "README.md"
 license = "MIT"
 authors = [
