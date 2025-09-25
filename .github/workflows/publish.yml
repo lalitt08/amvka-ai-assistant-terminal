@@ -1,0 +1,63 @@
+name: Publish (PyPI / TestPyPI)
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  id-token: write   # Required for OIDC trusted publishing
+  contents: read
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+            python-version: '3.12'
+
+      - name: Install build backend
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build twine
+
+      - name: Build distributions
+        run: python -m build
+
+      - name: Verify metadata
+        run: python -m twine check dist/*
+
+      - name: Publish to TestPyPI (pre-release tags)
+        if: contains(github.ref, '-rc') || contains(github.ref, 'a') || contains(github.ref, 'b')
+        env:
+          TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
+        run: |
+          python -m twine upload dist/* --non-interactive
+
+      - name: Publish to PyPI (release tags)
+        if: ${{ !contains(github.ref, '-rc') && !contains(github.ref, 'a') && !contains(github.ref, 'b') }}
+        run: |
+          python -m twine upload dist/* --non-interactive
+
+      - name: Summary
+        run: |
+          echo "Tag: $GITHUB_REF" >> $GITHUB_STEP_SUMMARY
+          echo "Published corresponding artifacts." >> $GITHUB_STEP_SUMMARY
+
+  smoke-test-install:
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref, '-rc') && !contains(github.ref, 'a') && !contains(github.ref, 'b') }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install from PyPI
+        run: |
+          pip install --no-cache-dir amvka
+          python -c "import amvka, sys; print('amvka version', amvka.__version__)"
