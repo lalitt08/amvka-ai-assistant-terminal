@@ -33,14 +33,14 @@ jobs:
         run: python -m twine check dist/*
 
       - name: Publish to TestPyPI (pre-release tags)
-        if: contains(github.ref, '-rc') || contains(github.ref, 'a') || contains(github.ref, 'b')
-        env:
-          TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
-        run: |
-          python -m twine upload dist/* --non-interactive
+        if: contains(github.ref_name, 'a') || contains(github.ref_name, 'b') || contains(github.ref_name, 'rc')
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
 
       - name: Publish to PyPI (release tags)
-        if: ${{ !contains(github.ref, '-rc') && !contains(github.ref, 'a') && !contains(github.ref, 'b') }}
+        if: ${{ !contains(github.ref_name, 'a') && !contains(github.ref_name, 'b') && !contains(github.ref_name, 'rc') }}
+        uses: pypa/gh-action-pypi-publish@release/v1
         run: |
           python -m twine upload dist/* --non-interactive
 
@@ -52,7 +52,7 @@ jobs:
   smoke-test-install:
     needs: build-and-publish
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.ref, '-rc') && !contains(github.ref, 'a') && !contains(github.ref, 'b') }}
+    if: ${{ !contains(github.ref_name, 'a') && !contains(github.ref_name, 'b') && !contains(github.ref_name, 'rc') }}
     steps:
       - uses: actions/setup-python@v5
         with:
