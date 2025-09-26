@@ -97,12 +97,19 @@ class ConfigManager:
             print_error("API key is required!")
             return
         
-        # Additional settings
+        # Smart model detection based on provider
+        default_models = {
+            "gemini": ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"],
+            "openai": ["gpt-4", "gpt-3.5-turbo", "gpt-4-turbo"]
+        }
+        
         config = {
             "provider": provider,
             "api_key": api_key,
-            "model": "gemini-1.5-flash" if provider == "gemini" else "gpt-3.5-turbo",
-            "safety_confirmation": True
+            "model": default_models[provider][0],  # Use first available as default
+            "fallback_models": default_models[provider],  # Store fallbacks
+            "safety_confirmation": True,
+            "auto_adapt": True  # Enable intelligent adaptation
         }
         
         self.save_config(config)
@@ -131,11 +138,37 @@ class ConfigManager:
             print_info("No configuration file found to reset.")
     
     def get_model(self) -> str:
-        """Get the model name from config."""
+        """Get the model name from config with intelligent fallback."""
         config = self.load_config()
         provider = self.get_provider()
         
+        # Get primary model
+        model = config.get("model")
+        if model:
+            return model
+        
+        # Intelligent fallback based on provider
         if provider == "gemini":
-            return config.get("model", "gemini-1.5-flash")
+            return "gemini-1.5-flash"
         else:
-            return config.get("model", "gpt-3.5-turbo")
+            return "gpt-3.5-turbo"
+    
+    def get_fallback_models(self) -> list:
+        """Get list of fallback models for the current provider."""
+        config = self.load_config()
+        provider = self.get_provider()
+        
+        fallbacks = config.get("fallback_models", [])
+        if fallbacks:
+            return fallbacks
+        
+        # Default fallbacks
+        if provider == "gemini":
+            return ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro", "gemini-1.0-pro"]
+        else:
+            return ["gpt-4", "gpt-3.5-turbo", "gpt-4-turbo", "gpt-4o"]
+    
+    def is_auto_adapt_enabled(self) -> bool:
+        """Check if auto-adaptation is enabled."""
+        config = self.load_config()
+        return config.get("auto_adapt", True)

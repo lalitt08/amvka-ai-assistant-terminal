@@ -28,6 +28,7 @@ class LLMClient:
         self.provider = config_manager.get_provider()
         self.api_key = config_manager.get_api_key()
         self.model = config_manager.get_model()
+        self.active_model = self.model  # Track actively used model
         self.env_detector = EnvironmentDetector()
         
         if not self.api_key:
@@ -36,20 +37,112 @@ class LLMClient:
         self._setup_client()
     
     def _setup_client(self):
-        """Setup the appropriate LLM client."""
+        """Intelligently setup LLM client with auto-detection and fallbacks."""
         if self.provider == "gemini":
-            if genai is None:
-                raise ImportError("google-generativeai package not installed. Run: pip install google-generativeai")
-            genai.configure(api_key=self.api_key)
-            self.client = genai.GenerativeModel(self.model)
-        
+            self._setup_gemini_client()
         elif self.provider == "openai":
-            if openai is None:
-                raise ImportError("openai package not installed. Run: pip install openai")
-            self.client = openai.OpenAI(api_key=self.api_key)
-        
+            self._setup_openai_client()
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
+    
+    def _setup_gemini_client(self):
+        """Setup Gemini client with intelligent model detection."""
+        if genai is None:
+            raise ImportError("google-generativeai package not installed. Run: pip install google-generativeai")
+        
+        try:
+            genai.configure(api_key=self.api_key)
+            
+            # Try to use the configured model first
+            model_name = self._normalize_gemini_model(self.model)
+            self.client = genai.GenerativeModel(model_name)
+            self.active_model = model_name
+            
+            # Test the client with a simple request to ensure it works
+            self._test_client_connection()
+            
+        except Exception as e:
+            print_warning(f"Primary model '{self.model}' failed, trying fallbacks...")
+            self._try_fallback_models("gemini")
+    
+    def _setup_openai_client(self):
+        """Setup OpenAI client with intelligent model detection."""
+        if openai is None:
+            raise ImportError("openai package not installed. Run: pip install openai")
+        
+        try:
+            self.client = openai.OpenAI(api_key=self.api_key)
+            self.active_model = self.model
+            
+            # Test the client
+            self._test_client_connection()
+            
+        except Exception as e:
+            print_warning(f"Primary model '{self.model}' failed, trying fallbacks...")
+            self._try_fallback_models("openai")
+    
+    def _normalize_gemini_model(self, model: str) -> str:
+        """Normalize Gemini model names to work with standard API."""
+        # Handle various Gemini model formats
+        model = model.lower().strip()
+        
+        # Remove vertex AI prefixes if present
+        if "projects/" in model:
+            model = model.split("/")[-1]
+        
+        # Map old/variant names to current ones
+        model_mappings = {
+            "gemini-1.5-flash-002": "gemini-1.5-flash",
+            "gemini-1.5-flash-001": "gemini-1.5-flash", 
+            "gemini-1.5-pro-002": "gemini-1.5-pro",
+            "gemini-1.5-pro-001": "gemini-1.5-pro",
+            "gemini-pro": "gemini-1.0-pro",
+            "text-bison": "gemini-1.0-pro",
+        }
+        
+        return model_mappings.get(model, model)
+    
+    def _try_fallback_models(self, provider: str):
+        """Try fallback models if primary fails."""
+        fallback_models = self.config_manager.get_fallback_models()
+        
+        for fallback_model in fallback_models:
+            try:
+                if provider == "gemini":
+                    model_name = self._normalize_gemini_model(fallback_model)
+                    self.client = genai.GenerativeModel(model_name)
+                    self.active_model = model_name
+                else:  # openai
+                    self.active_model = fallback_model
+                
+                self._test_client_connection()
+                print_info(f"✅ Successfully connected using fallback model: {self.active_model}")
+                return
+                
+            except Exception:
+                continue
+        
+        raise ValueError(f"Unable to connect with any available {provider} models. Please check your API key and network connection.")
+    
+    def _test_client_connection(self):
+        """Test client connection with a minimal request."""
+        try:
+            if self.provider == "gemini":
+                # Test with a very simple prompt
+                test_response = self.client.generate_content("Say 'OK' if you can respond.")
+                if not test_response or not test_response.text:
+                    raise Exception("No response from model")
+            else:  # openai
+                # Test with a simple completion
+                test_response = self.client.chat.completions.create(
+                    model=self.active_model,
+                    messages=[{"role": "user", "content": "Say 'OK' if you can respond."}],
+                    max_tokens=5
+                )
+                if not test_response.choices[0].message.content:
+                    raise Exception("No response from model")
+        except Exception as e:
+            raise Exception(f"Client test failed: {str(e)}")
     
     def get_command(self, query: str, context: Dict = None) -> Optional[str]:
         """Intelligently process query - classify intent and respond appropriately."""
@@ -102,7 +195,14 @@ Classification:"""
                 return "OTHER"
                 
         except Exception as e:
-            print_error(f"Error classifying query: {e}")
+            # Smart error handling - don't show technical errors to users
+            error_msg = str(e)
+            if "404" in error_msg or "not found" in error_msg.lower():
+                print_info("🔧 Adapting to available models...")
+            elif "api key" in error_msg.lower() or "unauthorized" in error_msg.lower():
+                print_error("❌ API key issue. Run 'amvka config' to reconfigure.")
+            else:
+                print_info("🤖 Processing your request...")
             return "COMMAND_REQUEST"  # Default to command if classification fails
     
     def _handle_information_request(self, query: str) -> Optional[str]:
@@ -170,7 +270,28 @@ Answer:"""
             return self._extract_command(response)
         
         except Exception as e:
-            print_error(f"Error calling {self.provider}: {e}")
+            # Smart error handling with user-friendly messages
+            error_msg = str(e)
+            if "404" in error_msg or "not found" in error_msg.lower():
+                print_info("🔄 Model unavailable, trying alternatives...")
+                return self._handle_model_fallback(query, context)
+            elif "api key" in error_msg.lower() or "unauthorized" in error_msg.lower():
+                print_error("🔑 API authentication failed. Please run 'amvka config' to update your credentials.")
+            elif "rate limit" in error_msg.lower() or "quota" in error_msg.lower():
+                print_warning("⏳ Rate limit reached. Please wait a moment and try again.")
+            else:
+                print_info(f"🤖 Temporary issue connecting to {self.provider}. Trying backup approach...")
+                return self._handle_model_fallback(query, context)
+            return None
+    
+    def _handle_model_fallback(self, query: str, context: Dict = None) -> Optional[str]:
+        """Handle model fallback gracefully."""
+        try:
+            # Reinitialize with fallback
+            self._try_fallback_models(self.provider)
+            return self._generate_command(query, context)
+        except Exception:
+            print_warning("⚠️  All models temporarily unavailable. Please check your internet connection and API key.")
             return None
     
     def _build_prompt(self, query: str, context: Dict = None) -> str:
@@ -311,9 +432,70 @@ Response:"""
         return prompt
     
     def _call_gemini(self, prompt: str) -> str:
-        """Call Gemini API."""
-        response = self.client.generate_content(prompt)
-        return response.text
+        """Call Gemini API with intelligent error handling."""
+        try:
+            response = self.client.generate_content(prompt)
+            if response and response.text:
+                return response.text
+            else:
+                raise Exception("Empty response from Gemini")
+        except Exception as e:
+            # Try to recover with a different approach
+            if "404" in str(e) or "not found" in str(e).lower():
+                print_warning(f"Model '{self.active_model}' not available, trying alternative...")
+                return self._retry_with_fallback(prompt, "gemini")
+            else:
+                raise e
+    
+    def _call_openai(self, prompt: str) -> str:
+        """Call OpenAI API with intelligent error handling."""
+        try:
+            response = self.client.chat.completions.create(
+                model=self.active_model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=100,
+                temperature=0.1
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            # Try to recover with a different model
+            if "model" in str(e).lower() and ("not found" in str(e).lower() or "does not exist" in str(e).lower()):
+                print_warning(f"Model '{self.active_model}' not available, trying alternative...")
+                return self._retry_with_fallback(prompt, "openai")
+            else:
+                raise e
+    
+    def _retry_with_fallback(self, prompt: str, provider: str) -> str:
+        """Retry request with fallback models."""
+        fallbacks = self.config_manager.get_fallback_models()
+        
+        for fallback in fallbacks:
+            try:
+                if provider == "gemini":
+                    fallback_normalized = self._normalize_gemini_model(fallback)
+                    temp_client = genai.GenerativeModel(fallback_normalized)
+                    response = temp_client.generate_content(prompt)
+                    if response and response.text:
+                        # Update active model on success
+                        self.client = temp_client
+                        self.active_model = fallback_normalized
+                        print_info(f"✅ Switched to working model: {self.active_model}")
+                        return response.text
+                else:  # openai
+                    response = self.client.chat.completions.create(
+                        model=fallback,
+                        messages=[{"role": "user", "content": prompt}],
+                        max_tokens=100,
+                        temperature=0.1
+                    )
+                    # Update active model on success
+                    self.active_model = fallback
+                    print_info(f"✅ Switched to working model: {self.active_model}")
+                    return response.choices[0].message.content
+            except Exception:
+                continue
+        
+        raise Exception(f"All {provider} models failed. Please check your API key and try again.")
     
     def _call_openai(self, prompt: str) -> str:
         """Call OpenAI API."""
