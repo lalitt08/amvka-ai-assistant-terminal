@@ -1,5 +1,20 @@
 [build-system]
-#classifiers = [
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amvka"
+version = "2.0.0"
+description = "AMVKA 2.0 - Universal AI Assistant with 100+ providers via LangChain. Commands + Conversations in one intelligent tool."
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Lalit Sangore", email = "lgsangore2002@gmail.com"}
+]
+maintainers = [
+    {name = "Lalit Sangore", email = "lgsangore2002@gmail.com"}
+]
+classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers", 
     "Intended Audience :: System Administrators",
@@ -22,41 +37,7 @@
     "Topic :: Communications :: Chat",
     "Environment :: Console",
 ]
-requires-python = ">= 3.8"equirements (setuptools_scm removed because version is static in [project])
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "amvka"
-version = "2.0.0"
-description = "🚀 AMVKA 2.0 - Universal AI Assistant with 100+ providers via LangChain. Commands + Conversations in one intelligent tool."
-readme = "README.md"
-license = "MIT"
-authors = [
-    {name = "Lalit Sangore", email = "lalit.sangore@example.com"}
-]
-maintainers = [
-    {name = "Lalit Sangore", email = "lalit.sangore@example.com"}
-]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers", 
-    "Intended Audience :: System Administrators",
-
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8", 
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: System :: Shells",
-    "Topic :: Utilities",
-    "Topic :: Software Development :: User Interfaces",
-    "Environment :: Console",
-]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 dependencies = [
     "langchain>=0.1.0",
     "langchain-community>=0.0.10",
@@ -77,7 +58,6 @@ Changelog = "https://github.com/lalitt08/amvka-ai-assistant-terminal/blob/main/C
 amvka = "amvka.cli:main"
 
 [project.optional-dependencies]
-# Core development tools
 dev = [
     "pytest>=6.0",
     "pytest-cov>=2.0",
@@ -88,27 +68,20 @@ dev = [
     "twine>=3.0.0"
 ]
 
-# AMVKA 2.0 - Universal AI Provider Support (9 Core Providers)
 openai = ["langchain-openai>=0.0.5"]
 gemini = ["langchain-google-genai>=0.0.5"]
 claude = ["langchain-anthropic>=0.0.5"]
-groq = ["langchain-groq>=0.1.0"]  # Ultra-fast inference
+groq = ["langchain-groq>=0.1.0"]
 cohere = ["langchain-cohere>=0.0.5"]
-azure = ["langchain-openai>=0.0.5"]  # Azure OpenAI uses same package
+azure = ["langchain-openai>=0.0.5"]
 aws = ["langchain-aws>=0.0.5"]
-ollama = ["langchain-community>=0.0.10"]  # Local models
+ollama = ["langchain-community>=0.0.10"]
 huggingface = ["langchain-huggingface>=0.0.3"]
 
-# Advanced LangChain features
-agents = ["langchain-experimental>=0.0.50"]
-tools = ["langchain-tools>=0.0.1"]
-memory = ["langchain-memory>=0.0.1"]
-
-# Convenience bundles for easy installation
 popular = ["langchain-openai>=0.0.5", "langchain-google-genai>=0.0.5", "langchain-anthropic>=0.0.5", "langchain-groq>=0.1.0"]
-fast = ["langchain-groq>=0.1.0", "langchain-google-genai>=0.0.5"]  # Ultra-fast providers
+fast = ["langchain-groq>=0.1.0", "langchain-google-genai>=0.0.5"]
 enterprise = ["langchain-openai>=0.0.5", "langchain-aws>=0.0.5", "langchain-anthropic>=0.0.5"]
-local = ["langchain-community>=0.0.10"]  # Offline/local models only
+local = ["langchain-community>=0.0.10"]
 all-providers = [
     "langchain-openai>=0.0.5",
     "langchain-google-genai>=0.0.5", 
@@ -120,19 +93,6 @@ all-providers = [
     "langchain-community>=0.0.10"
 ]
 
-# Full AMVKA 2.0 ecosystem with all providers and advanced features
-full = [
-    "langchain-openai>=0.0.5",
-    "langchain-google-genai>=0.0.5",
-    "langchain-anthropic>=0.0.5", 
-    "langchain-groq>=0.1.0",
-    "langchain-cohere>=0.0.5",
-    "langchain-aws>=0.0.5",
-    "langchain-huggingface>=0.0.3",
-    "langchain-community>=0.0.10",
-    "langchain-experimental>=0.0.50"
-]
-
 [tool.setuptools]
 package-dir = {"" = "src"}
 
@@ -141,16 +101,3 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 amvka = ["py.typed"]
-
-# Development tools configuration
-[tool.pylance]
-reportMissingImports = "none"  # Allow graceful optional imports
-
-[tool.pylint.messages_control] 
-disable = [
-    "import-error",
-    "no-name-in-module"
-]
-
-[tool.mypy]
-ignore_missing_imports = true
