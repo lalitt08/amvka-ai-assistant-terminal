@@ -5,6 +5,84 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-09-29 - "Universal Intelligence Release"
+
+### 🚀 **Major Release - Complete Architecture Overhaul**
+
+This release represents a fundamental transformation of AMVKA into a universal AI-powered assistant with support for 100+ AI providers and intelligent dual-mode operation.
+
+### ✨ **Added - Universal AI Provider Support**
+- 🌐 **Universal Provider Interface**: Complete LangChain integration supporting 100+ AI providers
+- 📡 **9 Core Providers**: OpenAI, Google Gemini, Anthropic Claude, Groq, Cohere, Azure OpenAI, AWS Bedrock, Ollama, HuggingFace
+- 🔄 **Real-Time Model Discovery**: Live API calls to fetch current available models from provider endpoints
+- 🎯 **Smart Model Filtering**: Intelligent filtering to show only working chat models (excludes TTS/Whisper/embedding models)
+- ⚡ **Ultra-Fast Providers**: Groq integration for lightning-speed inference (sub-second responses)
+- 🔗 **Connection Testing**: Automatic API key validation and model connectivity testing before configuration save
+
+### 🧠 **Added - Intelligent Response System**
+- 🤖 **Dual-Mode Operation**: 
+  - **Command Mode**: Generates system commands for file operations, git, deployment, etc.
+  - **Conversational Mode**: Direct AI responses for knowledge questions, explanations, help
+- 💬 **Smart Query Classification**: Automatically determines whether to generate commands or provide conversational responses
+- 🎯 **Enhanced Prompting**: Improved AI prompts for more accurate command generation and informative responses
+- 🏷️ **Response Categories**: Structured handling for greetings, help requests, dangerous operations, and general queries
+
+### 🔐 **Enhanced - Security & Safety**
+- 🛡️ **Multi-Layer Model Filtering**:
+  - Groq: Excludes `tts`, `whisper`, `embedding`, `guard`, `moderation`, `playai`
+  - OpenAI: Excludes `tts`, `dall-e`, `whisper`, `embedding`, `moderation`
+  - Gemini: Excludes `embedding`, `aqa` models, includes only chat-capable models
+  - Cohere: Only models with 'chat' endpoints
+- 🔄 **Fallback Model System**: Automatic retry with working models if primary model fails
+- ✅ **Provider-Specific Validation**: Tailored safety checks for each AI provider
+- 🚨 **Enhanced Dangerous Command Detection**: Expanded patterns for system protection
+
+### 🛠️ **Enhanced - Configuration System**
+- 🎛️ **Interactive Setup**: Guided configuration with real-time model discovery
+- 📊 **Provider Comparison**: Display of speed, capabilities, and model counts during selection
+- 🔍 **Live Model Fetching**: 
+  - Gemini: Fetches 39+ current models from Google API
+  - Groq: Fetches 20+ ultra-fast models with chat filtering
+  - OpenAI: Live model list from OpenAI API
+  - All providers: Real-time availability checking
+- ⚙️ **Configuration Management**: Enhanced config display, reset, and testing options
+
+### 🖥️ **Enhanced - Cross-Platform Support**  
+- 💻 **Windows Enhancement**: Improved PowerShell command generation and environment detection
+- 🐧 **Linux/macOS**: Enhanced bash/zsh command optimization
+- 🔧 **Environment-Specific**: Commands tailored to detected shell and OS capabilities
+
+### 📦 **Technical Improvements**
+- 🏗️ **Pure LangChain Architecture**: Removed direct provider dependencies, using LangChain's universal interface
+- 📄 **Clean Requirements**: Minimal core dependencies with optional provider packages
+- 🔄 **Improved Error Handling**: Context-aware error messages with actionable solutions
+- ⚡ **Performance Optimization**: Faster startup, efficient API calls, smart caching
+- 🧪 **Comprehensive Testing**: Model filtering verification, provider connection testing
+
+### 🐛 **Fixed**
+- 🔑 **API Key Display Bug**: Fixed "Not set" display issue in configuration show
+- 🚫 **Invalid Model Prevention**: Eliminated TTS/Whisper model selection that caused connection failures  
+- 🔄 **Fallback Method Bug**: Fixed incorrect method call in fallback model system
+- 📝 **Model Name Accuracy**: Updated default model names to current working versions
+
+### 🔄 **Changed - Breaking Changes**
+- 🏗️ **Architecture**: Migrated from direct provider APIs to LangChain universal interface
+- 📦 **Dependencies**: Simplified requirements.txt to core + optional provider packages
+- ⚙️ **Configuration Format**: Enhanced config structure for multi-provider support
+- 🎯 **Prompt System**: Completely redesigned prompts for better dual-mode operation
+
+### 📈 **Performance Improvements**
+- ⚡ **Groq Integration**: Sub-second response times for supported models
+- 🔄 **Smart Fallbacks**: Reduced failure rates through intelligent model switching
+- 📡 **Efficient API Calls**: Optimized provider communication and caching
+- 🎯 **Model Filtering**: Faster setup through pre-filtered model lists
+
+### 🧪 **Development & Testing**
+- ✅ **Model Filter Verification**: Comprehensive testing script for all provider filtering
+- 🔍 **Connection Testing**: Automated API key and model validation
+- 📊 **Provider Analytics**: Real-time model discovery and availability tracking
+- 🛠️ **Development Tools**: Enhanced debugging and configuration testing utilities
+
 ## [1.0.0] - 2025-09-25
 
 ### Added

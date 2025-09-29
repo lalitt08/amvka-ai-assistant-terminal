@@ -32,7 +32,8 @@ def main():
     args, remaining = parser.parse_known_args()
     
     if args.version:
-        print("amvka 1.0.0")
+        print("amvka 2.0.0 - Universal AI Command Assistant")
+        print("Supports: OpenAI, Gemini, Claude, Azure, AWS, Ollama, HuggingFace, Cohere")
         return
     
     if args.help or (not remaining and len(sys.argv) == 1):
@@ -48,10 +49,7 @@ def main():
     try:
         config_manager = ConfigManager()
         
-        if not config_manager.is_configured():
-            print_info("First time setup required. Let's configure your API key.")
-            config_manager.setup_initial_config()
-        
+        # Try to create LLM client - it will handle setup messages
         llm_client = LLMClient(config_manager)
         executor = CommandExecutor()
         conversation_manager = ConversationManager(llm_client, executor)
@@ -99,24 +97,39 @@ def show_help():
     print("""usage: amvka [OPTIONS] QUERY
        amvka config [--show|--reset]
 
-Amvka - Convert natural language to shell commands using AI
+🚀 Amvka 2.0 - Universal AI Command Assistant
+Convert natural language to shell commands using ANY AI provider
 
-OPTIONS:
+🤖 SUPPORTED AI PROVIDERS:
+    • OpenAI (GPT-4, GPT-3.5)     - Most reliable
+    • Google Gemini               - Free tier available
+    • Anthropic Claude            - High quality responses
+    • Azure OpenAI              - Enterprise solutions
+    • AWS Bedrock                - Enterprise cloud AI
+    • Ollama                     - Local & private models  
+    • Hugging Face              - Open source models
+    • Cohere                     - Enterprise AI platform
+
+⚙️ OPTIONS:
     -y, --yes        Auto-confirm command execution
     --dry-run        Show command without executing
-    -v, --version    Show version information
+    -v, --version    Show version and supported providers
     -h, --help       Show this help message
 
-COMMANDS:
-    config           Configure API settings
+🔧 COMMANDS:
+    config           Interactive setup for any AI provider
       --show         Show current configuration
       --reset        Reset configuration
 
-EXAMPLES:
-    amvka show files here
-    amvka create a new file called test.txt
-    amvka --dry-run find all Python files
-    amvka config""")
+💡 EXAMPLES:
+    amvka config                              # Setup any AI provider
+    amvka "show me all Python files"         # File operations
+    amvka "check system memory usage"        # System monitoring  
+    amvka "create a backup of this folder"   # File management
+    amvka --dry-run "find large files"       # Preview mode
+    amvka -y "install requirements.txt"      # Auto-confirm
+
+🎯 FIRST TIME? Run: amvka config""")
 
 
 if __name__ == "__main__":
